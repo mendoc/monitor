@@ -1,0 +1,13 @@
+{
+  "name": "monitor",
+  "version": "1.0.0",
+  "description": "Une application de parcours de PC à distance.",
+  "readmeFilename": "readme.md",
+  "repository": "https://github.com/mendoc/monitor.git",
+  "license": "MIT",
+  "dependencies": {
+    "ejs": "^2.6.1",
+    "express": "4.13.4",
+    "socket.io": "1.4.4"
+  }
+}
