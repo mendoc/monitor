@@ -1,44 +1,76 @@
-$(document).ready(function(){
+$(document).ready(function () {
 
-    $('#adresse').val(location.href);
+    var adresse = $('#adresse');
+    adresse.val(location.href);
 
-	var URL    = $('#adresse').val();
-	var socket = null;
+    var URL = adresse.val();
+    var socket = null;
 
-	if (URL) {
-		socket = io(URL);
-		link();
-	}
+    if (URL) {
+        socket = io(URL);
+        link();
+    }
 
-	$('#adresse').keypress(function(e){
+    adresse.keypress(function (e) {
         var key = e.keyCode;
-	    if (key === 13) {
-	    	var u  = $(this).val();
-	    	socket = io(u);
-	    	link();
-	    }
-	});
-
-    $('.champ').keypress(function(e){
-    	var key = e.keyCode;
-	    if (key === 13) {
-	    	var command = $(this).val();
-	    	if (!command) return;
-            $(this).val("");
-            var contenu = $(".contenu");
-            contenu.html(contenu.html() + "<br> # " + command);
-            $('body').scrollTop(99*99*99);
-	    }
+        if (key === 13) {
+            var u = $(this).val();
+            socket = io(u);
+            link();
+        }
     });
 
-    function link(){
-		socket.on('auth', function(){
-		    $('.serveur').find('span').text("Connecté");
-		    $('.champ').focus();
-		});
+    $('.champ').keypress(function (e) {
+        var key = e.keyCode;
+        if (key === 13) {
+            var text = $(this).val();
+            if (!text) return;
+            $(this).val("");
+            var contenu = $(".contenu");
+            exec(text);
+            $('body').scrollTop(99 * 99 * 99);
+        }
+    });
 
-		socket.on('disconnect', function(){
-			$('.serveur').find('span').text("Déconnecté");
-		});
+    function exec(text) {
+        var parts = text.split(" ");
+        var cmd   = (parts.length > 0) ? parts[0] : undefined;
+        var command = {};
+        command.token = (new Date()).getMilliseconds();
+        command.exe = text;
+        command.global = true;
+
+        switch (cmd) {
+            case "retirer":
+                command.exe = cmd;
+                command.params = (parts.length > 1) ? parts[1] : undefined;
+                break;
+            default:
+                break;
+        }
+
+        if (socket) {
+            socket.emit("command", command);
+            $('.contenu .command').text(text);
+        }
     }
-})
+
+    function link() {
+        socket.on('auth', function () {
+            $('.serveur').find('span').text("Connecté");
+            $('.champ').focus();
+        });
+
+        socket.on('reponse', function (data) {
+            if (data.erreur) {
+                $('.contenu .output').text(data.message);
+            } else {
+                $('.contenu .output').html(data.resultat);
+            }
+        });
+
+        socket.on('disconnect', function () {
+            $('.serveur').find('span').text("Déconnecté");
+        });
+    }
+});
