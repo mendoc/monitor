@@ -1,5 +1,6 @@
 $(document).ready(function () {
 
+    var curr_client = "";
     var adresse = $('#adresse');
     adresse.val(location.href);
 
@@ -33,19 +34,30 @@ $(document).ready(function () {
     });
 
     function exec(text) {
-        var parts = text.split(" ");
-        var cmd   = (parts.length > 0) ? parts[0] : undefined;
+        var parts = text.split("|");
+        var cmd   = (parts.length > 0) ? parts[0].trim() : undefined;
         var command = {};
         command.token = (new Date()).getMilliseconds();
         command.exe = text;
-        command.global = true;
 
         switch (cmd) {
+            case "lister":
+                command.exe = cmd;
+                command.global = true;
+                break;
             case "retirer":
                 command.exe = cmd;
-                command.params = (parts.length > 1) ? parts[1] : undefined;
+                command.global = true;
+                command.params = (parts.length > 1) ? parts[1].trim() : undefined;
+                break;
+            case "contenu":
+                command.exe    = cmd;
+                command.global = false;
+                command.client = (parts.length > 1) ? parts[1].trim() : undefined;
                 break;
             default:
+                command.global = false;
+                command.client = (parts.length > 1) ? parts[1].trim() : undefined;
                 break;
         }
 
@@ -62,8 +74,8 @@ $(document).ready(function () {
         });
 
         socket.on('reponse', function (data) {
-            if (data.erreur) {
-                $('.contenu .output').text(data.message);
+            if (data.message) {
+                $('.contenu .output').html(data.message);
             } else {
                 $('.contenu .output').html(data.resultat);
             }
